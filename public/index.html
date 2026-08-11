@@ -1,0 +1,1680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎨 PixelArt NES Studio</title>
+    
+    <!-- Google Translate Widget -->
+    <script type="text/javascript">
+        function googleTranslateElementInit() {
+            console.log('🌐 Inicializando Google Translate...');
+            try {
+                new google.translate.TranslateElement({
+                    pageLanguage: 'es',
+                    includedLanguages: 'es,en,fr,de,it,pt,ja,ko,zh-CN,ru,ar,hi',
+                    layout: google.translate.TranslateElement.InlineLayout.SIMPLE,
+                    autoDisplay: false,
+                    multilanguagePage: true
+                }, 'googleTranslateWidget');
+                console.log('✅ Google Translate inicializado correctamente');
+            } catch (e) {
+                console.error('❌ Error al inicializar Google Translate:', e);
+                document.getElementById('googleTranslateWidget').innerHTML = 
+                    '<span style="color:#888;font-size:0.7rem;">🌐 Traducción no disponible</span>';
+            }
+        }
+    </script>
+    <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async defer></script>
+    
+    <style>
+        /* --- ESTILOS RETRO NES --- */
+        * { box-sizing: border-box; }
+        body {
+            background-color: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            margin: 0;
+            top: 0 !important;
+        }
+        .app-container {
+            max-width: 1400px;
+            width: 100%;
+            background: #16213e;
+            padding: 20px;
+            border-radius: 16px;
+            border: 4px solid #0f3460;
+            box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            border-bottom: 3px solid #f5c842;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            color: #f5c842;
+            text-shadow: 3px 3px 0 #c0392b;
+            margin: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        .api-status {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: bold;
+        }
+        .api-status.online { background: #2ecc71; color: #1a1a2e; }
+        .api-status.offline { background: #e74c3c; color: #fff; }
+        .sprite-counter {
+            color: #f5c842;
+            font-size: 0.8rem;
+            padding: 4px 12px;
+            background: #1a1a2e;
+            border-radius: 12px;
+            border: 1px solid #533483;
+        }
+        .google-translate {
+            display: inline-block;
+            min-width: 150px;
+        }
+        .google-translate .goog-te-gadget {
+            color: #aaa !important;
+            font-family: 'Courier New', monospace !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 8px !important;
+        }
+        .google-translate .goog-te-gadget .goog-te-combo {
+            background: #1a1a2e !important;
+            color: #f5c842 !important;
+            border: 2px solid #533483 !important;
+            border-radius: 6px !important;
+            padding: 6px 10px !important;
+            font-family: 'Courier New', monospace !important;
+            font-size: 0.8rem !important;
+            cursor: pointer !important;
+            min-width: 120px !important;
+        }
+        .google-translate .goog-te-gadget .goog-te-combo:hover {
+            border-color: #f5c842 !important;
+        }
+        .google-translate .goog-te-gadget a {
+            color: #f5c842 !important;
+            text-decoration: none !important;
+            font-size: 0.7rem !important;
+        }
+        .google-translate .goog-te-gadget a:hover {
+            text-decoration: underline !important;
+        }
+        .google-translate .goog-te-gadget img {
+            display: none !important;
+        }
+        .goog-te-banner-frame { display: none !important; }
+        .goog-te-gadget { font-family: 'Courier New', monospace !important; }
+        .goog-te-gadget .goog-te-combo { margin: 4px 0; }
+        
+        .panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            background: #0f3460;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border: 2px solid #533483;
+        }
+        .control-group {
+            flex: 1 1 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .control-group label {
+            font-size: 0.8rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .control-group input, .control-group select, .control-group textarea {
+            background: #1a1a2e;
+            border: 2px solid #533483;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 0.9rem;
+            width: 100%;
+        }
+        .control-group input[type="file"] {
+            padding: 6px;
+            border: 2px dashed #533483;
+        }
+        .palette-matrix {
+            display: grid;
+            grid-template-columns: 40px repeat(16, 1fr);
+            gap: 2px;
+            background: #1a1a2e;
+            padding: 8px;
+            border-radius: 6px;
+            border: 2px solid #533483;
+            overflow-x: auto;
+        }
+        .palette-matrix .header {
+            color: #888;
+            font-size: 0.7rem;
+            text-align: center;
+            padding: 2px;
+        }
+        .palette-matrix .row-label {
+            color: #888;
+            font-size: 0.7rem;
+            text-align: right;
+            padding-right: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+        .palette-color {
+            width: 100%;
+            aspect-ratio: 1;
+            border: 2px solid #444;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 20px;
+        }
+        .palette-color.selected {
+            border: 4px solid #f5c842;
+            transform: scale(1.1);
+            box-shadow: 0 0 10px #f5c842;
+            z-index: 2;
+        }
+        .palette-color:hover { transform: scale(1.2); z-index: 3; }
+        .palette-info {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+            align-items: center;
+        }
+        .selected-colors {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .selected-color-swatch {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #555;
+            border-radius: 4px;
+        }
+        .action-btn {
+            background: #f5c842;
+            color: #1a1a2e;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 0 #c0392b;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 0 #c0392b;
+        }
+        .action-btn:disabled {
+            opacity: 0.6;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #c0392b;
+            cursor: not-allowed;
+        }
+        .action-btn.secondary {
+            background: #533483;
+            color: #f5c842;
+            box-shadow: 0 4px 0 #2c1a4a;
+            font-size: 0.9rem;
+            padding: 8px 15px;
+            width: auto;
+            flex: 1;
+        }
+        .action-btn.secondary:hover {
+            box-shadow: 0 6px 0 #2c1a4a;
+        }
+        .action-btn.success {
+            background: #2ecc71;
+            color: #1a1a2e;
+            box-shadow: 0 4px 0 #1a7a4a;
+        }
+        .action-btn.success:hover {
+            box-shadow: 0 6px 0 #1a7a4a;
+        }
+        .action-btn.warning {
+            background: #f39c12;
+            color: #1a1a2e;
+            box-shadow: 0 4px 0 #a06000;
+        }
+        .action-btn.warning:hover {
+            box-shadow: 0 6px 0 #a06000;
+        }
+        .action-btn.replica {
+            background: #9b59b6;
+            color: #fff;
+            box-shadow: 0 4px 0 #6c3483;
+        }
+        .action-btn.replica:hover {
+            box-shadow: 0 6px 0 #6c3483;
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .canvas-wrapper {
+            background: #0a0a1a;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #533483;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #pixelCanvas {
+            image-rendering: pixelated;
+            background: #0a0a1a;
+            border: 2px solid #333;
+            max-width: 100%;
+            height: auto;
+        }
+        .canvas-label {
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            padding: 4px 12px;
+            background: #0a0a1a;
+            border-radius: 4px;
+            border: 1px solid #333;
+        }
+        .canvas-size-indicator {
+            color: #888;
+            font-size: 0.7rem;
+            margin-top: 5px;
+            padding: 6px 14px;
+            background: #0a0a1a;
+            border-radius: 4px;
+            border: 1px solid #333;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .canvas-size-indicator span {
+            color: #f5c842;
+            font-weight: bold;
+        }
+        .image-preview {
+            margin-top: 10px;
+            max-width: 200px;
+            max-height: 200px;
+            border: 2px solid #533483;
+            border-radius: 8px;
+            display: none;
+        }
+        .image-preview.visible { display: block; }
+        .status-msg {
+            margin-top: 15px;
+            padding: 12px;
+            background: #1a1a2e;
+            border-radius: 8px;
+            border-left: 5px solid #f5c842;
+            font-weight: bold;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .status-msg.error { border-left-color: #e74c3c; color: #e74c3c; }
+        .status-msg.success { border-left-color: #2ecc71; color: #2ecc71; }
+        .status-msg.debug { border-left-color: #3498db; color: #3498db; font-size: 0.8rem; }
+        .export-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+        .export-btn {
+            background: #2c3e50;
+            color: #fff;
+            border: 2px solid #533483;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+        .export-btn:hover {
+            background: #533483;
+            border-color: #f5c842;
+        }
+        .measure-hint {
+            color: #aaa;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+        .tooltip {
+            background: #f5c842;
+            color: #1a1a2e;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-left: 8px;
+            cursor: help;
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltip-text {
+            visibility: hidden;
+            width: 280px;
+            background: #1a1a2e;
+            color: #f5c842;
+            text-align: left;
+            border: 2px solid #f5c842;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 10;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.75rem;
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .tooltip:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        .tooltip .tooltip-text::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -8px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: #f5c842 transparent transparent transparent;
+        }
+        .mode-selector {
+            display: flex;
+            gap: 8px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 8px 12px;
+            background: #1a1a2e;
+            border: 2px solid #533483;
+            border-radius: 6px;
+            color: #888;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.2s;
+            text-align: center;
+            position: relative;
+        }
+        .mode-btn.active {
+            background: #533483;
+            border-color: #f5c842;
+            color: #f5c842;
+        }
+        .mode-btn:hover { border-color: #f5c842; }
+        .mode-btn .sub {
+            font-size: 0.6rem;
+            color: #666;
+            display: block;
+        }
+        .mode-btn.active .sub { color: #aaa; }
+        .mode-btn .mode-tooltip {
+            visibility: hidden;
+            width: 260px;
+            background: #1a1a2e;
+            color: #f5c842;
+            text-align: left;
+            border: 2px solid #f5c842;
+            border-radius: 8px;
+            padding: 12px;
+            position: absolute;
+            z-index: 10;
+            bottom: 115%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.7rem;
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            pointer-events: none;
+        }
+        .mode-btn:hover .mode-tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        .mode-btn .mode-tooltip::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -8px;
+            border-width: 8px;
+            border-style: solid;
+            border-color: #f5c842 transparent transparent transparent;
+        }
+        .mode-btn.replica-mode {
+            border-color: #9b59b6;
+            color: #9b59b6;
+        }
+        .mode-btn.replica-mode.active {
+            background: #9b59b6;
+            border-color: #f5c842;
+            color: #fff;
+        }
+        .mode-btn.replica-mode .sub { color: #7d3c98; }
+        .mode-btn.replica-mode.active .sub { color: #d2b4de; }
+        .lienzo-info {
+            background: #0a0a1a;
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #888;
+            border: 1px solid #333;
+            text-align: left;
+            width: 100%;
+            max-width: 800px;
+        }
+        .lienzo-info span { color: #f5c842; }
+        .grid-info {
+            color: #666;
+            font-size: 0.7rem;
+            margin-top: 4px;
+        }
+        .gif-preview {
+            margin-top: 15px;
+            border: 2px solid #533483;
+            border-radius: 8px;
+            max-width: 100%;
+            display: none;
+        }
+        .gif-preview.visible { display: block; }
+        @media (max-width: 700px) {
+            .panel { flex-direction: column; }
+            .control-group { flex: 1 1 auto; }
+            .palette-matrix {
+                grid-template-columns: 30px repeat(16, 1fr);
+                font-size: 0.6rem;
+            }
+            .mode-selector { flex-direction: row; }
+            .tooltip .tooltip-text { width: 200px; font-size: 0.65rem; }
+            .mode-btn .mode-tooltip { width: 200px; font-size: 0.65rem; }
+            .btn-group { flex-direction: column; }
+            .action-btn.secondary { width: 100%; }
+            .header-top { flex-direction: column; align-items: center; }
+            .header-controls { justify-content: center; flex-wrap: wrap; }
+            h1 { font-size: 1.5rem; }
+            .google-translate { min-width: 100px; }
+            .google-translate .goog-te-gadget .goog-te-combo { min-width: 80px !important; font-size: 0.7rem !important; }
+            .canvas-size-indicator { font-size: 0.6rem; gap: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- HEADER con traducción -->
+        <div class="header-top">
+            <h1>🎮 PIXELART NES STUDIO BY THAN2034</h1>
+            <div class="header-controls">
+                <span class="api-status online" id="apiStatus">🟢 NVIDIA + Pollinations</span>
+                <span class="sprite-counter" id="spriteCounter">🧩 Sprites: 0</span>
+                <div class="google-translate" id="googleTranslateWidget">
+                    <span style="color:#666;font-size:0.7rem;">🌐 Cargando traducción...</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <!-- Medidas -->
+            <div class="control-group">
+                <label>📐 Medidas (H x W) <span class="tooltip" title="Ej: 5x3 cuadrados = 40x24 píxeles">NES</span></label>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="spriteHeight" value="5" min="1" max="64" style="width: 60px;">
+                    <span style="color:#aaa;">x</span>
+                    <input type="number" id="spriteWidth" value="3" min="1" max="64" style="width: 60px;">
+                    <select id="unitSelect" style="width: auto; flex: 1;">
+                        <option value="cuadrados" selected>Cuadrados</option>
+                        <option value="cuadraditos">Píxeles</option>
+                    </select>
+                </div>
+                <div class="measure-hint" id="measureHint">5x3 cuadrados = 40x24 píxeles</div>
+                <div class="grid-info">📐 Cuadrícula: 1px = cuadradito | 8x8 = cuadrado | 64x64 = cuadrante</div>
+            </div>
+
+            <!-- Modo -->
+            <div class="control-group">
+                <label>🎯 Modo <span class="tooltip" title="Selecciona el tipo de dibujo">Tipo</span></label>
+                <div class="mode-selector">
+                    <button class="mode-btn active" data-mode="sprite">
+                        🧑 Sprite
+                        <span class="sub">Personaje u objeto</span>
+                        <span class="mode-tooltip">
+                            <strong>🧑 Sprite</strong><br>
+                            Dibuja un SOLO personaje u objeto.<br>
+                            <span style="color:#aaa;font-size:0.6rem;">Ej: Mario, una espada</span>
+                        </span>
+                    </button>
+                    <button class="mode-btn replica-mode" data-mode="sprite-replica">
+                        🎯 Sprite (Réplica)
+                        <span class="sub">Entrenar IA</span>
+                        <span class="mode-tooltip">
+                            <strong>🎯 Sprite (Réplica)</strong><br>
+                            Modo de ENTRENAMIENTO para la IA.<br>
+                            <span style="color:#aaa;font-size:0.6rem;">La IA aprende de tus sprites en color y tamaño</span>
+                        </span>
+                    </button>
+                    <button class="mode-btn" data-mode="fondo">
+                        🌄 Fondo
+                        <span class="sub">Escenario o nivel</span>
+                        <span class="mode-tooltip">
+                            <strong>🌄 Fondo</strong><br>
+                            Dibuja un escenario o nivel completo.<br>
+                            <span style="color:#aaa;font-size:0.6rem;">Ej: Un castillo, un bosque</span>
+                        </span>
+                    </button>
+                    <button class="mode-btn" data-mode="maqueta">
+                        📋 Maqueta
+                        <span class="sub">Múltiples sprites</span>
+                        <span class="mode-tooltip">
+                            <strong>📋 Maqueta</strong><br>
+                            Dibuja MÚLTIPLES sprites juntos.<br>
+                            <span style="color:#aaa;font-size:0.6rem;">Ej: Hoja de sprites de un juego</span>
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Paleta -->
+            <div class="control-group" style="flex: 3;">
+                <label>🎨 Paleta NES (16x4) <span class="tooltip" title="Selecciona 4 colores (Regla de Oro 2)">SOLO 4 colores</span></label>
+                <div class="palette-matrix" id="paletteContainer"></div>
+                <div class="palette-info">
+                    <span style="color:#aaa; font-size:0.8rem;">Colores seleccionados:</span>
+                    <div class="selected-colors" id="selectedColorsDisplay">
+                        <span style="color:#666;">(selecciona 4)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Prompt y Foto -->
+            <div class="control-group" style="flex: 2;">
+                <label>📝 Prompt / Descripción</label>
+                <textarea id="promptInput" rows="2" placeholder="Ej: Caballero con espada roja..."></textarea>
+
+                <label style="margin-top: 8px;">📷 Foto Modelo (Opcional)</label>
+                <input type="file" id="imageUpload" accept="image/*">
+                <img id="imagePreview" class="image-preview" alt="Vista previa">
+                <span style="font-size:0.7rem; color:#888;">Sube un sprite o maqueta de referencia.</span>
+            </div>
+        </div>
+
+        <!-- Botones principales -->
+        <div class="btn-group">
+            <button class="action-btn" id="generateBtn">🎨 GENERAR PIXEL ART NES</button>
+            <button class="action-btn secondary success" id="replicateBtn">🔄 REPLICAR FOTO PIXEL</button>
+            <button class="action-btn secondary warning" id="trainBtn">🧠 ENTRENAR CON SPRITE</button>
+            <button class="action-btn secondary" id="gifBtn">🎬 GENERAR GIF</button>
+        </div>
+        <div id="statusMessage" class="status-msg">⚡ Listo para generar tu pixel art.</div>
+
+        <!-- Lienzo - SIN FONDO DE COLOR -->
+        <div class="canvas-wrapper">
+            <canvas id="pixelCanvas"></canvas>
+            <div class="canvas-label" id="canvasLabel">📐 Lienzo de referencia - esperando generación</div>
+            
+            <!-- INDICADOR DE TAMAÑO DEL LIENZO -->
+            <div class="canvas-size-indicator" id="canvasSizeIndicator">
+                📏 Tamaño: <span id="sizeDisplay">40x24</span> píxeles | 
+                🧱 <span id="squareDisplay">5x3</span> cuadrados |
+                🔲 Píxel: <span id="pixelSizeDisplay">8</span>px
+            </div>
+            
+            <div class="lienzo-info" id="lienzoInfo">
+                📐 <span id="lienzoDim">40x24</span> píxeles |
+                🧱 <span id="lienzoCuadrados">5x3</span> cuadrados |
+                📦 <span id="lienzoCuadrantes">1x1</span> cuadrantes |
+                🎨 <span id="lienzoColores">4</span> colores |
+                🎯 <span id="lienzoModo">Sprite</span>
+            </div>
+        </div>
+
+        <!-- GIF Preview -->
+        <div id="gifContainer" style="margin-top: 15px; text-align: center; display: none;">
+            <h3 style="color: #f5c842;">🎬 Animación GIF</h3>
+            <canvas id="gifCanvas" style="border: 2px solid #533483; border-radius: 8px; image-rendering: pixelated; background: #0a0a1a;"></canvas>
+            <div style="margin-top: 10px;">
+                <button class="export-btn" id="exportGifBtn">💾 Exportar GIF</button>
+                <button class="export-btn" id="clearGifBtn">🗑️ Limpiar GIF</button>
+            </div>
+        </div>
+
+        <!-- Exportar -->
+        <div class="export-group">
+            <button class="export-btn" id="exportPngBtn">💾 Exportar PNG</button>
+            <button class="export-btn" id="exportJpgBtn">💾 Exportar JPG</button>
+            <button class="export-btn" id="exportJsonBtn">📋 Ver Matriz</button>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // 1. CONFIGURACIÓN Y ESTADO
+        // ============================================================
+        const NES_PALETTE = [
+            '#7C7C7C','#0000FC','#0000BC','#4428BC','#940084','#A80020','#A81000','#881400',
+            '#503000','#007800','#006800','#005800','#004058','#000000','#000000','#000000',
+            '#BCBCBC','#0078F8','#0058F8','#6844FC','#D800CC','#E40058','#F83800','#E45C10',
+            '#AC7C00','#00B800','#00A800','#00A844','#008888','#000000','#000000','#000000',
+            '#F8F8F8','#3CBCFC','#6888FC','#9878F8','#F878F8','#F85898','#F87858','#FCA044',
+            '#F8B800','#B8F818','#58D854','#58F898','#00E8D8','#787878','#000000','#000000',
+            '#FCFCFC','#A4E4FC','#B8B8F8','#D8B8F8','#F8B8F8','#F8A4C0','#F0D0B0','#FCE0A8',
+            '#F8D878','#D8F878','#B8F8B8','#B8F8D8','#00FCFC','#F8D8F8','#000000','#000000'
+        ];
+
+        const COLOR_NAMES = [
+            'Gris','Azul','AzulOsc','Púrpura','Rosa','Rojo','Naranja','Marrón',
+            'VerdeOsc','Verde','VerdeOsc2','VerdeOliva','AzulMar','Negro','Negro','Negro',
+            'GrisClar','AzulClar','AzulClar2','Violeta','RosaFucsia','RojoClar','NaranjaClar','NaranjaOsc',
+            'Amarillo','VerdeLima','VerdeClar','VerdeAgua','Cian','Negro','Negro','Negro',
+            'Blanco','Cielo','Lavanda','Lila','RosaClar','RosaPastel','Beige','Crema',
+            'AmarilloClar','VerdeClar2','VerdePastel','VerdeAguaClar','CianClar','RosaClar2','Negro','Negro'
+        ];
+
+        let selectedPalette = [];
+        let currentMatrix = null;
+        let currentImageData = null;
+        let currentRows = 40;
+        let currentCols = 24;
+        let currentMode = 'sprite';
+
+        let spriteLibrary = [];
+
+        // DOM
+        const canvas = document.getElementById('pixelCanvas');
+        const ctx = canvas.getContext('2d');
+        const heightInput = document.getElementById('spriteHeight');
+        const widthInput = document.getElementById('spriteWidth');
+        const unitSelect = document.getElementById('unitSelect');
+        const measureHint = document.getElementById('measureHint');
+        const paletteContainer = document.getElementById('paletteContainer');
+        const selectedColorsDisplay = document.getElementById('selectedColorsDisplay');
+        const promptInput = document.getElementById('promptInput');
+        const imageUpload = document.getElementById('imageUpload');
+        const imagePreview = document.getElementById('imagePreview');
+        const generateBtn = document.getElementById('generateBtn');
+        const replicateBtn = document.getElementById('replicateBtn');
+        const trainBtn = document.getElementById('trainBtn');
+        const gifBtn = document.getElementById('gifBtn');
+        const statusMsg = document.getElementById('statusMessage');
+        const canvasLabel = document.getElementById('canvasLabel');
+        const spriteCounter = document.getElementById('spriteCounter');
+        const gifContainer = document.getElementById('gifContainer');
+        const gifCanvas = document.getElementById('gifCanvas');
+        const gifCtx = gifCanvas.getContext('2d');
+        const lienzoDim = document.getElementById('lienzoDim');
+        const lienzoCuadrados = document.getElementById('lienzoCuadrados');
+        const lienzoCuadrantes = document.getElementById('lienzoCuadrantes');
+        const lienzoColores = document.getElementById('lienzoColores');
+        const lienzoModo = document.getElementById('lienzoModo');
+        
+        const sizeDisplay = document.getElementById('sizeDisplay');
+        const squareDisplay = document.getElementById('squareDisplay');
+        const pixelSizeDisplay = document.getElementById('pixelSizeDisplay');
+
+        // ============================================================
+        // 2. MODO
+        // ============================================================
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentMode = this.dataset.mode;
+                const modeNames = { 
+                    sprite: 'Sprite', 
+                    'sprite-replica': 'Sprite (Réplica)',
+                    fondo: 'Fondo', 
+                    maqueta: 'Maqueta' 
+                };
+                lienzoModo.textContent = modeNames[currentMode] || 'Sprite';
+                updateLienzoInfo();
+                drawReferenceGrid();
+                
+                if (currentMode === 'sprite-replica') {
+                    generateBtn.textContent = '🎯 ENTRENAR IA CON RÉPLICA';
+                    generateBtn.className = 'action-btn replica';
+                } else {
+                    generateBtn.textContent = '🎨 GENERAR PIXEL ART NES';
+                    generateBtn.className = 'action-btn';
+                }
+            });
+        });
+
+        // ============================================================
+        // 3. PALETA
+        // ============================================================
+        function initPalette() {
+            paletteContainer.innerHTML = '';
+            const hexHeaders = ['', '0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'];
+            const rowLabels = ['$0','$1','$2','$3'];
+
+            for (let col = 0; col < hexHeaders.length; col++) {
+                const div = document.createElement('div');
+                div.className = 'header';
+                div.textContent = hexHeaders[col];
+                paletteContainer.appendChild(div);
+            }
+
+            for (let row = 0; row < 4; row++) {
+                const label = document.createElement('div');
+                label.className = 'row-label';
+                label.textContent = rowLabels[row];
+                paletteContainer.appendChild(label);
+
+                for (let col = 0; col < 16; col++) {
+                    const idx = row * 16 + col;
+                    const hex = NES_PALETTE[idx];
+                    const name = COLOR_NAMES[idx] || '';
+
+                    const colorDiv = document.createElement('div');
+                    colorDiv.className = 'palette-color';
+                    colorDiv.style.backgroundColor = hex;
+                    colorDiv.dataset.hex = hex;
+                    colorDiv.dataset.index = idx;
+                    colorDiv.dataset.name = name;
+                    colorDiv.title = `${hex} (${name})`;
+
+                    colorDiv.addEventListener('click', function() {
+                        const hexColor = this.dataset.hex;
+                        if (this.classList.contains('selected')) {
+                            this.classList.remove('selected');
+                            const pos = selectedPalette.findIndex(c => c.hex === hexColor);
+                            if (pos !== -1) selectedPalette.splice(pos, 1);
+                        } else {
+                            if (selectedPalette.length >= 4) {
+                                statusMsg.innerText = '⚠️ Solo puedes seleccionar 4 colores';
+                                statusMsg.className = 'status-msg error';
+                                return;
+                            }
+                            this.classList.add('selected');
+                            selectedPalette.push({
+                                hex: hexColor,
+                                name: this.dataset.name,
+                                index: parseInt(this.dataset.index)
+                            });
+                        }
+                        updateSelectedDisplay();
+                        updateLienzoInfo();
+                        drawReferenceGrid();
+                        statusMsg.innerText = `✅ Paleta: ${selectedPalette.length}/4 colores.`;
+                        statusMsg.className = 'status-msg success';
+                    });
+
+                    paletteContainer.appendChild(colorDiv);
+                }
+            }
+
+            const defaultColors = ['#7C7C7C', '#0000FC', '#F83800', '#F8F8F8'];
+            const allColorDivs = paletteContainer.querySelectorAll('.palette-color');
+            allColorDivs.forEach(div => {
+                const hex = div.dataset.hex;
+                if (defaultColors.includes(hex) && selectedPalette.length < 4) {
+                    div.click();
+                }
+            });
+
+            updateSelectedDisplay();
+            updateLienzoInfo();
+            drawReferenceGrid();
+        }
+
+        function updateSelectedDisplay() {
+            selectedColorsDisplay.innerHTML = '';
+            if (selectedPalette.length === 0) {
+                selectedColorsDisplay.innerHTML = '<span style="color:#666;">(selecciona 4)</span>';
+                return;
+            }
+            selectedPalette.forEach((color, i) => {
+                const swatch = document.createElement('div');
+                swatch.className = 'selected-color-swatch';
+                swatch.style.backgroundColor = color.hex;
+                swatch.title = `${color.hex} - Color ${i}`;
+                selectedColorsDisplay.appendChild(swatch);
+            });
+        }
+
+        // ============================================================
+        // 4. LIENZO - CON REDIMENSIONAMIENTO DINÁMICO
+        // ============================================================
+        function drawReferenceGrid() {
+            const h = currentRows;
+            const w = currentCols;
+            
+            const maxCanvasWidth = 800;
+            const maxCanvasHeight = 600;
+            const pixelSizeW = Math.floor(maxCanvasWidth / w);
+            const pixelSizeH = Math.floor(maxCanvasHeight / h);
+            const pixelSize = Math.max(2, Math.min(pixelSizeW, pixelSizeH, 20));
+
+            const canvasWidth = w * pixelSize;
+            const canvasHeight = h * pixelSize;
+
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            canvas.style.width = Math.min(canvasWidth, 800) + 'px';
+            canvas.style.height = Math.min(canvasHeight, 600) + 'px';
+
+            // Actualizar indicador de tamaño
+            const unit = unitSelect.value;
+            let cuadradosH, cuadradosW;
+            if (unit === 'cuadrados') {
+                cuadradosH = parseInt(heightInput.value) || 5;
+                cuadradosW = parseInt(widthInput.value) || 3;
+            } else {
+                cuadradosH = Math.ceil(h / 8);
+                cuadradosW = Math.ceil(w / 8);
+            }
+            
+            sizeDisplay.textContent = `${w}x${h}`;
+            squareDisplay.textContent = `${cuadradosH}x${cuadradosW}`;
+            pixelSizeDisplay.textContent = `${pixelSize}px`;
+
+            ctx.fillStyle = '#0a0a1a';
+            ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+            drawGridLinesOnly(canvasWidth, canvasHeight, h, w, pixelSize);
+
+            if (currentMatrix) {
+                renderMatrixOnly(currentMatrix, selectedPalette.map(c => c.hex), pixelSize);
+            }
+
+            const modeNames = { 
+                sprite: '🧑 Sprite', 
+                'sprite-replica': '🎯 Sprite (Réplica)',
+                fondo: '🌄 Fondo', 
+                maqueta: '📋 Maqueta' 
+            };
+            canvasLabel.textContent = `📐 ${w}x${h} píxeles - ${modeNames[currentMode] || 'Sprite'} (${selectedPalette.length}/4 colores)`;
+            updateLienzoInfo();
+        }
+
+        function drawGridLinesOnly(canvasWidth, canvasHeight, rows, cols, pixelSize) {
+            // Cuadraditos (cada píxel)
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 0.5;
+            for (let r = 0; r <= rows; r++) {
+                ctx.beginPath();
+                ctx.moveTo(0, r * pixelSize);
+                ctx.lineTo(canvasWidth, r * pixelSize);
+                ctx.stroke();
+            }
+            for (let c = 0; c <= cols; c++) {
+                ctx.beginPath();
+                ctx.moveTo(c * pixelSize, 0);
+                ctx.lineTo(c * pixelSize, canvasHeight);
+                ctx.stroke();
+            }
+
+            // Cuadrados (cada 8 píxeles)
+            ctx.strokeStyle = 'rgba(255,255,200,0.25)';
+            ctx.lineWidth = 1.5;
+            for (let r = 0; r <= rows; r += 8) {
+                ctx.beginPath();
+                ctx.moveTo(0, r * pixelSize);
+                ctx.lineTo(canvasWidth, r * pixelSize);
+                ctx.stroke();
+            }
+            for (let c = 0; c <= cols; c += 8) {
+                ctx.beginPath();
+                ctx.moveTo(c * pixelSize, 0);
+                ctx.lineTo(c * pixelSize, canvasHeight);
+                ctx.stroke();
+            }
+
+            // Cuadrantes (cada 64 píxeles)
+            ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+            ctx.lineWidth = 2.5;
+            for (let r = 0; r <= rows; r += 64) {
+                ctx.beginPath();
+                ctx.moveTo(0, r * pixelSize);
+                ctx.lineTo(canvasWidth, r * pixelSize);
+                ctx.stroke();
+            }
+            for (let c = 0; c <= cols; c += 64) {
+                ctx.beginPath();
+                ctx.moveTo(c * pixelSize, 0);
+                ctx.lineTo(c * pixelSize, canvasHeight);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = 'rgba(255,200,100,0.5)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(0, 0, canvasWidth, canvasHeight);
+
+            ctx.fillStyle = 'rgba(255,255,255,0.06)';
+            ctx.font = `${Math.min(pixelSize * 2, 18)}px monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${cols}x${rows}`, canvasWidth / 2, canvasHeight / 2);
+        }
+
+        function renderMatrixOnly(matrix, palette, pixelSize) {
+            if (!matrix || matrix.length === 0) return;
+            const rows = matrix.length;
+            const cols = matrix[0].length;
+
+            const canvasWidth = cols * pixelSize;
+            const canvasHeight = rows * pixelSize;
+
+            if (canvas.width !== canvasWidth || canvas.height !== canvasHeight) {
+                canvas.width = canvasWidth;
+                canvas.height = canvasHeight;
+                canvas.style.width = Math.min(canvasWidth, 800) + 'px';
+                canvas.style.height = Math.min(canvasHeight, 600) + 'px';
+            }
+
+            const imageData = ctx.createImageData(canvasWidth, canvasHeight);
+            const data = imageData.data;
+
+            for (let i = 0; i < data.length; i += 4) {
+                data[i] = 0;
+                data[i + 1] = 0;
+                data[i + 2] = 0;
+                data[i + 3] = 0;
+            }
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const index = matrix[r][c] || 0;
+                    if (index === 0) continue;
+                    
+                    const hex = palette[index] || '#000000';
+                    const rgb = hexToRgb(hex);
+                    if (!rgb) continue;
+
+                    for (let py = 0; py < pixelSize; py++) {
+                        for (let px = 0; px < pixelSize; px++) {
+                            const idx = ((r * pixelSize + py) * canvasWidth + (c * pixelSize + px)) * 4;
+                            data[idx] = rgb.r;
+                            data[idx + 1] = rgb.g;
+                            data[idx + 2] = rgb.b;
+                            data[idx + 3] = 255;
+                        }
+                    }
+                }
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+            drawGridLinesOnly(canvasWidth, canvasHeight, rows, cols, pixelSize);
+            currentImageData = canvas.toDataURL('image/png');
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : null;
+        }
+
+        // ============================================================
+        // 5. MEDIDAS
+        // ============================================================
+        function updateMeasureHint() {
+            let h = parseInt(heightInput.value) || 5;
+            let w = parseInt(widthInput.value) || 3;
+            const unit = unitSelect.value;
+
+            if (unit === 'cuadrados') {
+                const pixelH = h * 8;
+                const pixelW = w * 8;
+                measureHint.innerText = `${h}x${w} cuadrados = ${pixelH}x${pixelW} píxeles`;
+                currentRows = pixelH;
+                currentCols = pixelW;
+            } else {
+                measureHint.innerText = `${h}x${w} píxeles = ${Math.ceil(h/8)}x${Math.ceil(w/8)} cuadrados`;
+                currentRows = h;
+                currentCols = w;
+            }
+            updateLienzoInfo();
+            drawReferenceGrid();
+        }
+
+        function updateLienzoInfo() {
+            let h = parseInt(heightInput.value) || 5;
+            let w = parseInt(widthInput.value) || 3;
+            const unit = unitSelect.value;
+
+            let pixelsH, pixelsW, cuadradosH, cuadradosW;
+            if (unit === 'cuadrados') {
+                pixelsH = h * 8; pixelsW = w * 8;
+                cuadradosH = h; cuadradosW = w;
+            } else {
+                pixelsH = h; pixelsW = w;
+                cuadradosH = Math.ceil(h / 8); cuadradosW = Math.ceil(w / 8);
+            }
+
+            lienzoDim.textContent = `${pixelsH}x${pixelsW}`;
+            lienzoCuadrados.textContent = `${cuadradosH}x${cuadradosW}`;
+            lienzoCuadrantes.textContent = `${Math.ceil(cuadradosH/8)}x${Math.ceil(cuadradosW/8)}`;
+            lienzoColores.textContent = selectedPalette.length || 4;
+            
+            sizeDisplay.textContent = `${pixelsH}x${pixelsW}`;
+            squareDisplay.textContent = `${cuadradosH}x${cuadradosW}`;
+        }
+
+        heightInput.addEventListener('input', updateMeasureHint);
+        widthInput.addEventListener('input', updateMeasureHint);
+        unitSelect.addEventListener('change', updateMeasureHint);
+
+        // ============================================================
+        // 6. PREVISUALIZACIÓN
+        // ============================================================
+        imageUpload.addEventListener('change', function(e) {
+            const file = this.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    imagePreview.src = event.target.result;
+                    imagePreview.className = 'image-preview visible';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.className = 'image-preview';
+                imagePreview.src = '';
+            }
+        });
+
+        // ============================================================
+        // 7. FUNCIONES PRINCIPALES
+        // ============================================================
+
+        function renderSprite(matrix, palette) {
+            if (!matrix || matrix.length === 0) return;
+            
+            const h = matrix.length;
+            const w = matrix[0].length;
+            const maxSize = 800;
+            const pixelSizeW = Math.floor(maxSize / w);
+            const pixelSizeH = Math.floor(600 / h);
+            const pixelSize = Math.max(2, Math.min(pixelSizeW, pixelSizeH, 20));
+
+            const canvasWidth = w * pixelSize;
+            const canvasHeight = h * pixelSize;
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            canvas.style.width = Math.min(canvasWidth, 800) + 'px';
+            canvas.style.height = Math.min(canvasHeight, 600) + 'px';
+
+            renderMatrixOnly(matrix, palette, pixelSize);
+            
+            sizeDisplay.textContent = `${w}x${h}`;
+            pixelSizeDisplay.textContent = `${pixelSize}px`;
+        }
+
+        // 7.1 Generar Pixel Art (con IA)
+        async function generatePixelArt() {
+            if (selectedPalette.length !== 4) {
+                statusMsg.innerText = '⚠️ Debes seleccionar EXACTAMENTE 4 colores';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            let h = parseInt(heightInput.value) || 5;
+            let w = parseInt(widthInput.value) || 3;
+            if (unitSelect.value === 'cuadrados') {
+                h = h * 8;
+                w = w * 8;
+            }
+
+            if (h > 512 || w > 512) {
+                statusMsg.innerText = '⚠️ El tamaño máximo es 512x512 píxeles';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            const promptText = promptInput.value.trim() || 'dibuja un personaje';
+            const imageFile = imageUpload.files[0];
+            const modeNames = { 
+                sprite: 'Sprite', 
+                'sprite-replica': 'Sprite (Réplica)',
+                fondo: 'Fondo', 
+                maqueta: 'Maqueta' 
+            };
+            const modoTexto = modeNames[currentMode] || 'Sprite';
+
+            let imageBase64 = null;
+            let imageMimeType = null;
+            if (imageFile) {
+                const reader = new FileReader();
+                const dataUrl = await new Promise((resolve, reject) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(imageFile);
+                });
+                const parts = dataUrl.split(',');
+                imageMimeType = parts[0].match(/:(.*?);/)[1];
+                imageBase64 = parts[1];
+            }
+
+            statusMsg.innerText = '🧠 Generando pixel art con IA...';
+            statusMsg.className = 'status-msg';
+            generateBtn.disabled = true;
+
+            try {
+                const paletteHex = selectedPalette.map(c => c.hex);
+
+                const response = await fetch('/api/generate-pixelart', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        prompt: promptText,
+                        imageBase64: imageBase64,
+                        imageMimeType: imageMimeType,
+                        height: h,
+                        width: w,
+                        palette: paletteHex,
+                        mode: currentMode === 'sprite-replica' ? 'sprite' : currentMode,
+                        isReplica: currentMode === 'sprite-replica'
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(result.error || 'Error generando pixel art');
+                }
+
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.src = `data:${result.mimeType || 'image/png'};base64,${result.imageBase64}`;
+
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = w;
+                tempCanvas.height = h;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.imageSmoothingEnabled = false;
+                tempCtx.drawImage(img, 0, 0, w, h);
+
+                const imageData = tempCtx.getImageData(0, 0, w, h);
+                const data = imageData.data;
+
+                const matrix = [];
+                const paletteHexArr = selectedPalette.map(c => c.hex);
+
+                for (let r = 0; r < h; r++) {
+                    const row = [];
+                    for (let c = 0; c < w; c++) {
+                        const idx = (r * w + c) * 4;
+                        const r_ = data[idx];
+                        const g_ = data[idx + 1];
+                        const b_ = data[idx + 2];
+                        const a_ = data[idx + 3];
+
+                        if (a_ < 128) {
+                            row.push(0);
+                            continue;
+                        }
+
+                        let minDist = Infinity;
+                        let closest = 0;
+                        for (let p = 0; p < paletteHexArr.length; p++) {
+                            const rgb = hexToRgb(paletteHexArr[p]);
+                            if (!rgb) continue;
+                            const dist = Math.sqrt(
+                                Math.pow(r_ - rgb.r, 2) +
+                                Math.pow(g_ - rgb.g, 2) +
+                                Math.pow(b_ - rgb.b, 2)
+                            );
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closest = p;
+                            }
+                        }
+                        row.push(closest);
+                    }
+                    matrix.push(row);
+                }
+
+                currentMatrix = matrix;
+                renderSprite(matrix, paletteHexArr);
+
+                const modeDisplay = modeNames[currentMode] || 'Sprite';
+                canvasLabel.textContent = `✅ ${w}x${h} - Pixel Art NES generado (${modeDisplay})`;
+                statusMsg.innerText = `✅ Pixel Art generado! (${w}x${h} píxeles)`;
+                statusMsg.className = 'status-msg success';
+
+                if (currentMode === 'sprite-replica') {
+                    trainWithSprite();
+                }
+
+                updateSpriteCounter();
+
+            } catch (error) {
+                statusMsg.innerText = `❌ Error: ${error.message}`;
+                statusMsg.className = 'status-msg error';
+                console.error('Error:', error);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+
+        // 7.2 Replicar Foto Pixel
+        async function replicatePixelPhoto() {
+            const imageFile = imageUpload.files[0];
+            if (!imageFile) {
+                statusMsg.innerText = '⚠️ Primero sube una foto para replicar.';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            if (selectedPalette.length !== 4) {
+                statusMsg.innerText = '⚠️ Debes seleccionar EXACTAMENTE 4 colores';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            let h = parseInt(heightInput.value) || 5;
+            let w = parseInt(widthInput.value) || 3;
+            if (unitSelect.value === 'cuadrados') {
+                h = h * 8;
+                w = w * 8;
+            }
+
+            statusMsg.innerText = '🔄 Replicando foto a pixel art...';
+            statusMsg.className = 'status-msg';
+            replicateBtn.disabled = true;
+
+            try {
+                const reader = new FileReader();
+                const dataUrl = await new Promise((resolve, reject) => {
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(imageFile);
+                });
+
+                const img = new Image();
+                img.src = dataUrl;
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                });
+
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = w;
+                tempCanvas.height = h;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.imageSmoothingEnabled = false;
+                tempCtx.drawImage(img, 0, 0, w, h);
+
+                const imageData = tempCtx.getImageData(0, 0, w, h);
+                const data = imageData.data;
+
+                const matrix = [];
+                const paletteHexArr = selectedPalette.map(c => c.hex);
+
+                for (let r = 0; r < h; r++) {
+                    const row = [];
+                    for (let c = 0; c < w; c++) {
+                        const idx = (r * w + c) * 4;
+                        const r_ = data[idx];
+                        const g_ = data[idx + 1];
+                        const b_ = data[idx + 2];
+                        const a_ = data[idx + 3];
+
+                        if (a_ < 128) {
+                            row.push(0);
+                            continue;
+                        }
+
+                        let minDist = Infinity;
+                        let closest = 0;
+                        for (let p = 0; p < paletteHexArr.length; p++) {
+                            const rgb = hexToRgb(paletteHexArr[p]);
+                            if (!rgb) continue;
+                            const dist = Math.sqrt(
+                                Math.pow(r_ - rgb.r, 2) +
+                                Math.pow(g_ - rgb.g, 2) +
+                                Math.pow(b_ - rgb.b, 2)
+                            );
+                            if (dist < minDist) {
+                                minDist = dist;
+                                closest = p;
+                            }
+                        }
+                        row.push(closest);
+                    }
+                    matrix.push(row);
+                }
+
+                currentMatrix = matrix;
+                renderSprite(matrix, paletteHexArr);
+
+                canvasLabel.textContent = `🔄 ${w}x${h} - Replicado desde foto`;
+                statusMsg.innerText = `✅ Foto replicada a pixel art! (${w}x${h} píxeles)`;
+                statusMsg.className = 'status-msg success';
+
+                updateSpriteCounter();
+
+            } catch (error) {
+                statusMsg.innerText = `❌ Error al replicar: ${error.message}`;
+                statusMsg.className = 'status-msg error';
+                console.error('Error:', error);
+            } finally {
+                replicateBtn.disabled = false;
+            }
+        }
+
+        // 7.3 Entrenar con Sprite
+        function trainWithSprite() {
+            if (!currentMatrix) {
+                statusMsg.innerText = '⚠️ Primero genera o replica un sprite.';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            const spriteCopy = currentMatrix.map(row => [...row]);
+            spriteLibrary.push({
+                matrix: spriteCopy,
+                palette: selectedPalette.map(c => c.hex),
+                width: currentCols,
+                height: currentRows,
+                mode: currentMode,
+                timestamp: new Date().toISOString()
+            });
+
+            updateSpriteCounter();
+            statusMsg.innerText = `✅ Sprite guardado en biblioteca (${spriteLibrary.length} sprites)`;
+            statusMsg.className = 'status-msg success';
+        }
+
+        // 7.4 Generar GIF
+        function generateGIF() {
+            if (spriteLibrary.length < 2) {
+                statusMsg.innerText = '⚠️ Necesitas al menos 2 sprites guardados para hacer un GIF.';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            statusMsg.innerText = `🎬 Generando GIF con ${spriteLibrary.length} sprites...`;
+            statusMsg.className = 'status-msg';
+
+            try {
+                const firstSprite = spriteLibrary[0];
+                const frameWidth = firstSprite.width || currentCols;
+                const frameHeight = firstSprite.height || currentRows;
+
+                gifCanvas.width = frameWidth * 8;
+                gifCanvas.height = frameHeight * 8;
+                gifCanvas.style.width = Math.min(frameWidth * 8, 400) + 'px';
+                gifCanvas.style.height = Math.min(frameHeight * 8, 400) + 'px';
+
+                gifContainer.style.display = 'block';
+
+                let frameIndex = 0;
+                const frameInterval = setInterval(() => {
+                    if (frameIndex >= spriteLibrary.length) {
+                        frameIndex = 0;
+                    }
+
+                    const sprite = spriteLibrary[frameIndex];
+                    const palette = sprite.palette || selectedPalette.map(c => c.hex);
+                    const matrix = sprite.matrix;
+
+                    gifCtx.fillStyle = '#0a0a1a';
+                    gifCtx.fillRect(0, 0, gifCanvas.width, gifCanvas.height);
+
+                    if (matrix && matrix.length > 0) {
+                        const rows = matrix.length;
+                        const cols = matrix[0].length;
+                        const pixelSize = Math.min(gifCanvas.width / cols, gifCanvas.height / rows);
+
+                        for (let r = 0; r < rows; r++) {
+                            for (let c = 0; c < cols; c++) {
+                                const index = matrix[r][c] || 0;
+                                if (index === 0) continue;
+                                
+                                const hex = palette[index] || '#000000';
+                                const rgb = hexToRgb(hex);
+                                if (!rgb) continue;
+
+                                gifCtx.fillStyle = `rgb(${rgb.r},${rgb.g},${rgb.b})`;
+                                gifCtx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
+                            }
+                        }
+                    }
+
+                    gifCtx.fillStyle = 'rgba(255,255,255,0.3)';
+                    gifCtx.font = '12px monospace';
+                    gifCtx.fillText(`Frame ${frameIndex + 1}/${spriteLibrary.length}`, 8, 20);
+
+                    frameIndex++;
+                }, 300);
+
+                window._gifInterval = frameInterval;
+
+                statusMsg.innerText = `🎬 GIF generado con ${spriteLibrary.length} frames!`;
+                statusMsg.className = 'status-msg success';
+
+            } catch (error) {
+                statusMsg.innerText = `❌ Error generando GIF: ${error.message}`;
+                statusMsg.className = 'status-msg error';
+                console.error('Error:', error);
+            }
+        }
+
+        function exportGIF() {
+            if (!gifContainer.style.display || gifContainer.style.display === 'none') {
+                statusMsg.innerText = '⚠️ Primero genera un GIF.';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+
+            const link = document.createElement('a');
+            link.download = `animacion_nes.gif`;
+            link.href = gifCanvas.toDataURL('image/gif');
+            link.click();
+            statusMsg.innerText = '✅ GIF exportado!';
+            statusMsg.className = 'status-msg success';
+        }
+
+        function clearGIF() {
+            if (window._gifInterval) {
+                clearInterval(window._gifInterval);
+                window._gifInterval = null;
+            }
+            gifContainer.style.display = 'none';
+            gifCtx.clearRect(0, 0, gifCanvas.width, gifCanvas.height);
+            statusMsg.innerText = '🗑️ GIF limpiado.';
+            statusMsg.className = 'status-msg debug';
+        }
+
+        function updateSpriteCounter() {
+            spriteCounter.textContent = `🧩 Sprites: ${spriteLibrary.length}`;
+        }
+
+        // ============================================================
+        // 8. EXPORTAR
+        // ============================================================
+        function exportImage(format) {
+            if (!currentImageData) {
+                statusMsg.innerText = '⚠️ Primero debes generar un sprite.';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+            const link = document.createElement('a');
+            link.download = `sprite_nes.${format}`;
+            link.href = currentImageData;
+            link.click();
+            statusMsg.innerText = `✅ Exportado como ${format.toUpperCase()}`;
+            statusMsg.className = 'status-msg success';
+        }
+
+        function showMatrix() {
+            if (!currentMatrix) {
+                statusMsg.innerText = '⚠️ Primero debes generar un sprite.';
+                statusMsg.className = 'status-msg error';
+                return;
+            }
+            const json = JSON.stringify(currentMatrix);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.download = 'matriz_sprite.json';
+            link.href = url;
+            link.click();
+            URL.revokeObjectURL(url);
+            statusMsg.innerText = '✅ Matriz exportada como JSON.';
+            statusMsg.className = 'status-msg success';
+        }
+
+        // ============================================================
+        // 9. EVENTOS
+        // ============================================================
+        generateBtn.addEventListener('click', generatePixelArt);
+        replicateBtn.addEventListener('click', replicatePixelPhoto);
+        trainBtn.addEventListener('click', trainWithSprite);
+        gifBtn.addEventListener('click', generateGIF);
+        document.getElementById('exportGifBtn').addEventListener('click', exportGIF);
+        document.getElementById('clearGifBtn').addEventListener('click', clearGIF);
+        document.getElementById('exportPngBtn').addEventListener('click', () => exportImage('png'));
+        document.getElementById('exportJpgBtn').addEventListener('click', () => exportImage('jpg'));
+        document.getElementById('exportJsonBtn').addEventListener('click', showMatrix);
+
+        // ============================================================
+        // 10. INICIO
+        // ============================================================
+        initPalette();
+        updateMeasureHint();
+
+        function loadExampleSprite() {
+            const h = currentRows;
+            const w = currentCols;
+            const matrix = [];
+            for (let r = 0; r < h; r++) {
+                const row = [];
+                for (let c = 0; c < w; c++) {
+                    if (r >= h * 0.3 && r <= h * 0.7 && c >= w * 0.4 && c <= w * 0.6) {
+                        row.push(3);
+                    } else if (c >= w * 0.3 && c <= w * 0.7 && r >= h * 0.4 && r <= h * 0.6) {
+                        row.push(2);
+                    } else if ((r < h * 0.15 || r > h * 0.85 || c < w * 0.15 || c > w * 0.85) && 
+                               (r >= 2 && r < h-2 && c >= 2 && c < w-2)) {
+                        row.push(1);
+                    } else {
+                        row.push(0);
+                    }
+                }
+                matrix.push(row);
+            }
+            return matrix;
+        }
+
+        setTimeout(() => {
+            const example = loadExampleSprite();
+            currentMatrix = example;
+            const paletteHex = selectedPalette.map(c => c.hex);
+            renderSprite(example, paletteHex);
+            canvasLabel.textContent = `📐 Ejemplo - ${currentCols}x${currentRows} píxeles (sin fondo)`;
+        }, 500);
+
+        async function checkAPIStatus() {
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    const data = await response.json();
+                    const statusEl = document.getElementById('apiStatus');
+                    if (data.nvidiaConfigured) {
+                        statusEl.className = 'api-status online';
+                        statusEl.textContent = '🟢 NVIDIA + Pollinations';
+                    } else {
+                        statusEl.className = 'api-status offline';
+                        statusEl.textContent = '🟡 Solo Pollinations';
+                    }
+                }
+            } catch (e) {
+                console.log('Health check falló:', e);
+            }
+        }
+        checkAPIStatus();
+
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'Enter') {
+                generatePixelArt();
+            }
+        });
+
+        console.log('🎮 PixelArt NES Studio cargado correctamente!');
+        console.log('💡 SIN FONDO - Solo se dibujan los colores 1,2,3 (el 0 es transparente)');
+        console.log('📚 Biblioteca de sprites:', spriteLibrary.length);
+        console.log('🌐 Traducción disponible en la esquina superior derecha');
+        console.log('📏 El lienzo se redimensiona automáticamente según las medidas HxW');
+    </script>
+</body>
+</html>
