@@ -13,8 +13,6 @@ e.g.
 **2.** sprite or sprite replica + photo + prompt ---> the image fails  
 **3.** model photo + photo + prompt ----> it should vectorize or scale, fails.  
 I uploaded it to a repository in case it can be improved.  
-WEB node.js: http://node1.lunes.host:2493/  
-Github: https://github.com/ef-thomp-sawyer/PIXEL-ART-STUDIO-BY-THAN2034-8bits-2-4-8-16-32---BETA-1.0      
 
 {Only a Idea}
 
